@@ -36,6 +36,7 @@ from openviking.server.routers import (
     admin_router,
     agent_evolution_router,
     bot_router,
+    bot_studio_router,
     compile_router,
     console_router,
     content_router,
@@ -170,9 +171,9 @@ async def _initialize_runtime_state(
                 if item["account_id"] != service.user.account_id
             ]
         )
-    from openviking.service.user_deletion import setup_user_deletion
+    from openviking.service.deletion import setup_deletion
 
-    app.state.user_deletion_service = await setup_user_deletion(
+    app.state.deletion_service = await setup_deletion(
         service=service,
         manager=app.state.api_key_manager,
         oauth_store=getattr(app.state, "oauth_store", None),
@@ -437,7 +438,7 @@ def create_app(
 
     app.state.config = config
     app.state.api_key_manager = None
-    app.state.user_deletion_service = None
+    app.state.deletion_service = None
     set_server_config(config)
 
     # Body dump middleware must be registered BEFORE observability so it ends up
@@ -667,6 +668,7 @@ def create_app(
     app.include_router(watches_router)
     app.include_router(webdav_router)
     app.include_router(bot_router, prefix="/bot/v1")
+    app.include_router(bot_studio_router)
 
     # OAuth 2.1: when enabled, mount the official MCP SDK auth routes
     # (DCR / authorize / token / metadata) plus our authorize page + consent /
